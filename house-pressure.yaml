@@ -50,7 +50,6 @@ switch:
     id: invert_sign
     name: "Invert pressure sign"
     icon: mdi:swap-vertical
-    entity_category: config
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
     # Offset is stored in the displayed sign convention, so flip it with the sign.
@@ -68,7 +67,6 @@ number:
     id: pressure_offset
     name: "Pressure offset"
     icon: mdi:tune-vertical
-    entity_category: config
     unit_of_measurement: Pa
     device_class: pressure
     mode: box
@@ -83,7 +81,6 @@ button:
   - platform: template
     name: "Zero calibrate"
     icon: mdi:scale-balance
-    entity_category: config
     on_press:
       - lambda: |-
           float avg = id(pressure_avg).state;
@@ -143,8 +140,6 @@ sensor:
   - platform: wifi_signal
     name: "WiFi signal"
     update_interval: 60s
-    entity_category: diagnostic
 
   - platform: uptime
     name: "Uptime"
-    entity_category: diagnostic
