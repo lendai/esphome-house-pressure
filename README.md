@@ -10,17 +10,17 @@ Config: [`house-pressure.yaml`](house-pressure.yaml)
 
 | Entity | Description |
 |---|---|
-| Tryck inne-ute | Main value: 5-minute moving average, Pa, 1 decimal, updated every 30 s |
-| Tryck inne-ute rå | Sampled every 2 s, averaged and sent every 10 s, Pa, 2 decimals |
-| Tryck offset | Zero offset (Pa), subtracted from both pressure sensors, kept across reboots |
-| Nollkalibrera | Sets the offset so the current 5-minute average becomes 0 |
-| Tryck invertera tecken | Flips the sign, for when the tubes are swapped |
-| WiFi-signal, Upptid | Diagnostics |
+| Pressure indoor-outdoor | Main value: 5-minute moving average, Pa, 1 decimal, updated every 30 s |
+| Pressure indoor-outdoor raw | Sampled every 2 s, averaged and sent every 10 s, Pa, 2 decimals |
+| Pressure offset | Zero offset (Pa), subtracted from both pressure sensors, kept across reboots |
+| Zero calibrate | Sets the offset so the current 5-minute average becomes 0 |
+| Invert pressure sign | Flips the sign, for when the tubes are swapped |
+| WiFi signal, Uptime | Diagnostics |
 
 **Sign convention:** a positive value means **overpressure indoors**. The SDP8xx reports a positive
 value when the pressure on its "+" port is higher than on its "−" port. With "+" open to indoor
 air and "−" piped outdoors, positive therefore already means overpressure indoors. If your readings
-come out reversed, turn on *Tryck invertera tecken*. The switch also flips the stored offset, so
+come out reversed, turn on *Invert pressure sign*. The switch also flips the stored offset, so
 your calibration still applies.
 
 For radon in a house with a crawlspace you usually want a slight **overpressure** indoors
@@ -94,7 +94,7 @@ captive portal.
 2. Go to *Devices → + → ESPHome*. Pick the discovered `house-pressure` device, or enter its IP
    address manually (port **6053**).
 3. When asked, paste the **encryption key** (`api_encryption_key` from `secrets.yaml`).
-4. The sensors, number, switch and button appear on the device. Use *Tryck inne-ute* in flows and
+4. The sensors, number, switch and button appear on the device. Use *Pressure indoor-outdoor* in flows and
    Insights.
 
 ## Zero calibration
@@ -102,17 +102,17 @@ captive portal.
 1. Connect **both ports to the same air**. For example, disconnect the outdoor tube and leave both
    ports open indoors, or join "+" and "−" with a short tube.
 2. Wait **at least 5 minutes** so the moving average fills with zero-pressure data.
-3. Press **Nollkalibrera** in Homey or in the ESPHome log. The offset is set so the average
-   becomes ≈ 0.0 Pa, and the new value appears in *Tryck offset*.
-4. Reconnect the outdoor tube. Wait 5 minutes and read *Tryck inne-ute*.
+3. Press **Zero calibrate** in Homey. The offset is set so the average
+   becomes ≈ 0.0 Pa, and the new value appears in *Pressure offset*.
+4. Reconnect the outdoor tube. Wait 5 minutes and read *Pressure indoor-outdoor*.
 
-You can also enter the offset by hand in *Tryck offset*. The SDP810 is specified with no drift
+You can also enter the offset by hand in *Pressure offset*. The SDP810 is specified with no drift
 (< 0.05 Pa/year), so calibrating once is usually enough.
 
 ## Reading the values
 
-- **Tryck inne-ute** is the value to balance against. Adjust the supply/exhaust air until it
+- **Pressure indoor-outdoor** is the value to balance against. Adjust the supply/exhaust air until it
   settles where you want it, for example +1…+3 Pa.
-- **Tryck inne-ute rå** shows short-term changes (wind gusts, doors, the kitchen hood). It's useful
+- **Pressure indoor-outdoor raw** shows short-term changes (wind gusts, doors, the kitchen hood). It's useful
   for spotting how much noise you get from wind.
 - Logs: `.venv/bin/esphome logs house-pressure.yaml`

@@ -1,6 +1,6 @@
 substitutions:
   name: house-pressure
-  friendly_name: Husets tryck
+  friendly_name: House pressure
 
 esphome:
   name: ${name}
@@ -48,7 +48,7 @@ i2c:
 switch:
   - platform: template
     id: invert_sign
-    name: "Tryck invertera tecken"
+    name: "Invert pressure sign"
     icon: mdi:swap-vertical
     entity_category: config
     optimistic: true
@@ -66,7 +66,7 @@ switch:
 number:
   - platform: template
     id: pressure_offset
-    name: "Tryck offset"
+    name: "Pressure offset"
     icon: mdi:tune-vertical
     entity_category: config
     unit_of_measurement: Pa
@@ -81,7 +81,7 @@ number:
 
 button:
   - platform: template
-    name: "Nollkalibrera"
+    name: "Zero calibrate"
     icon: mdi:scale-balance
     entity_category: config
     on_press:
@@ -113,7 +113,7 @@ sensor:
   - platform: copy
     source_id: sdp_pa
     id: pressure_raw
-    name: "Tryck inne-ute rå"
+    name: "Pressure indoor-outdoor raw"
     unit_of_measurement: Pa
     device_class: pressure
     state_class: measurement
@@ -126,7 +126,7 @@ sensor:
   - platform: copy
     source_id: sdp_pa
     id: pressure_avg
-    name: "Tryck inne-ute"
+    name: "Pressure indoor-outdoor"
     unit_of_measurement: Pa
     device_class: pressure
     state_class: measurement
@@ -141,10 +141,10 @@ sensor:
           return (id(invert_sign).state ? -x : x) - id(pressure_offset).state;
 
   - platform: wifi_signal
-    name: "WiFi-signal"
+    name: "WiFi signal"
     update_interval: 60s
     entity_category: diagnostic
 
   - platform: uptime
-    name: "Upptid"
+    name: "Uptime"
     entity_category: diagnostic
