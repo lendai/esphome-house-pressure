@@ -6,6 +6,8 @@ over the ESPHome Native API.
 
 Config: [`house-pressure.yaml`](house-pressure.yaml)
 
+Enclosure: [`enclosure/`](enclosure/README.md) (OpenSCAD, snap-fit, wall mount)
+
 ## Entities
 
 | Entity | Description |
@@ -42,7 +44,8 @@ In the datasheet's bottom view the pin order from left to right is SDA, GND, VDD
 is the one marked "1" on the housing.
 
 **Pull-ups:** use one 4.7 kΩ resistor from **GPIO4 (SDA) to 3V3** and one 4.7 kΩ resistor
-from **GPIO5 (SCL) to 3V3**. Put them on the breadboard rows that hold the SDA and SCL wires.
+from **GPIO5 (SCL) to 3V3**. Without a breadboard, solder them at the SDP810 end of the harness
+(SDA to VDD and SCL to VDD).
 The ESP32's internal pull-ups are turned off in the config.
 
 Power the sensor from **3.3 V**, not 5 V (VDD range 2.7–5.5 V). This keeps the I2C levels at 3.3 V.
