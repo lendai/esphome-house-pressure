@@ -91,6 +91,21 @@ If the device can't connect to WiFi, it opens the hotspot **"house-pressure fall
 password is `fallback_ap_password` in `secrets.yaml`. Connect to it and pick a network in the
 captive portal.
 
+### Status LED
+
+The C3-Zero has no power LED. Its only LED is the RGB LED on GPIO10, which the firmware uses as a
+status light:
+
+| LED | Meaning |
+|---|---|
+| Red, pulsing | No WiFi (or the fallback hotspot is up) |
+| Blue, pulsing | WiFi OK, Homey not connected |
+| Green, dim | Connected to Homey |
+| Off | No firmware or no power: check `ls /dev/cu.*` and 3V3–GND (≈ 3.3 V) |
+
+If the colours look swapped (for example green instead of red), change `channel_colors: RGB` to
+`GRB` in the config.
+
 ## Adding it to Homey Pro
 
 1. Install the **ESPHome** app on Homey (from the Homey App Store).
