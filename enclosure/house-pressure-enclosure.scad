@@ -1,6 +1,6 @@
 // House pressure sensor enclosure: Waveshare ESP32-C3-Zero-M + Sensirion SDP810-125Pa
 //
-// Coordinates (box hanging on the wall, seen from the front):
+// Coordinates (box on the wall, seen from the front):
 //   X = left -> right, Y = bottom -> top, Z = back (wall) -> front (lid).
 // The base is the carrier. Its back plate lies on the print bed and every part
 // mounts to it. The SDP810 ports and the USB-C cable come out of the bottom wall.
@@ -15,7 +15,7 @@
 
 /* [Output] */
 part = "assembly";          // [assembly, base, lid, coupon]
-lid_fastening = "snap";     // [snap, screw]
+lid_fastening = "screw";    // [screw, snap]
 explode = 18;               // assembly view only: lid lift (mm)
 show_lid = true;            // assembly view only
 show_components = true;     // assembly view only: draw the boards
@@ -46,6 +46,10 @@ c3_usb_overhang = 0.0;      // MEASURE how far the receptacle sticks out past th
 c3_usb_dx = 0.0;            // MEASURE receptacle offset from PCB centre line (+ = right, seen from the lid)
 c3_antenna_zone = 5.0;      // MEASURE antenna end kept free of plastic under the board
 c3_ledge = 0.5;             // MEASURE support ledge under each long PCB edge; must stay clear of the header solder stubs
+c3_l_play = 2.0;            // extra cradle length at the antenna end, so the board drops in past the snap
+c3_w_play = 4.5;            // extra cradle width, split between the two rails
+back_window = true;         // open the back plate under the C3 to reach the buttons and see the LED
+back_window_keep = 2.0;     // back plate kept between the window and the bottom wall
 
 /* [USB-C plug] */
 usb_plug_w = 13.0;          // MEASURE plug body (overmould) width + margin
@@ -69,6 +73,7 @@ sdp_pin_off = 2.75;         // MEASURE ear hole line to pin row (other side from
 sdp_pin_pitch = 2.0;        // MEASURE
 sdp_pin_len = 2.7;          // MEASURE pins above the pin face
 sdp_barb_d = 5.2;           // MEASURE barb diameter
+sdp_tube_od = 8.0;          // MEASURE tube outer diameter; the port holes let the tube through to the flange (0 = barb-size holes)
 sdp_flange_d = 8.0;         // MEASURE port flange diameter
 sdp_flange_z = 2.6;         // MEASURE port face to far side of the flange
 sdp_port_len = 13.5;        // MEASURE port length from the port face
@@ -79,25 +84,20 @@ sdp_hdr_clear = 15.0;       // free space behind the pins for the 2.0 mm header 
 sdp_boss_d = 5.5;           // boss diameter for the SDP810 screws
 sdp_boss_h = 3.2;           // standoff from the wall; must clear the port flange
 sdp_pilot_d = 2.1;          // MEASURE M2.5 self-tapping pilot hole (2.1 for PLA, 2.2 for PETG)
-sdp_access_d = 4.0;         // screwdriver access holes in the top wall
-m3_pilot_d = 2.5;           // MEASURE M3 self-tapping pilot hole (screw lid only)
-m3_clear_d = 3.4;           // M3 clearance hole in the lid
-m3_boss_d = 7.0;            // corner boss diameter (screw lid only)
-m3_depth = 10.0;            // pilot hole depth
-key_head_d = 8.5;           // MEASURE keyhole: wall screw head diameter + margin
-key_shank_d = 4.2;          // MEASURE keyhole: wall screw shank diameter + margin
-key_head_h = 3.2;           // MEASURE keyhole: pocket height for the screw head
-key_travel = 6.0;           // keyhole slot length (hole centre to slot end)
-key_spacing = 36.0;         // distance between the two keyholes
-key_roof = 1.4;             // keyhole pocket roof thickness
+sdp_access_d = 8.0;         // screwdriver access holes in the top wall
+lid_pilot_d = 2.2;          // pilot hole in the corner bosses
+lid_clear_d = 3.3;          // through-hole in the lid
+lid_head_d = 5.0;           // MEASURE screw head diameter; the lid hole is countersunk to fit (0 = no countersink)
+lid_boss_d = 6.0;           // corner boss diameter
+lid_screw_depth = 10.0;     // pilot hole depth: screw length minus the 2 mm lid
 
 /* [Layout] */
 margin = 3.0;               // free space between parts and walls
 sdp_c3_gap = 5.0;           // gap between the SDP810 bosses and the C3 cradle
-inner_d = 46.0;             // inside height (Y) of the box
+inner_d = 47.0;             // inside height (Y) of the box
 rail = 1.2;                 // C3 cradle side rail thickness
 sdp_floor_gap = 0.8;        // gap between the SDP810 body and the back plate
-snap_w = 6.0;               // C3 antenna-end snap width
+snap_w = 10.0;              // C3 antenna-end snap width
 snap_t = 1.2;               // C3 antenna-end snap thickness
 snap_hook = 0.8;            // C3 snap overhang over the PCB
 usb_hook_reach = 1.0;       // USB-end hooks: reach over the header spacer, from the PCB edge
@@ -113,7 +113,7 @@ snap_bump = 0.8;            // lid snap bump height (engagement = bump - clr)
 // ---------------------------------------------------------------- derived
 eps = 0.01;
 screw_lid = lid_fastening == "screw";
-corner_keep = screw_lid ? m3_boss_d : 0;      // keep parts out of the M3 corner bosses
+corner_keep = screw_lid ? max(0, lid_boss_d - margin) : 0;   // keep parts 1 mm clear of the corner bosses
 
 sdp_ext = max(sdp_l / 2, sdp_hole_dx / 2 + sdp_boss_d / 2);
 xs = wall + margin + corner_keep + sdp_ext;   // SDP810 centre X
@@ -127,7 +127,8 @@ x_high = xs + side * sdp_port_dx / 2;
 x_low = xs - side * sdp_port_dx / 2;
 
 cr_x0 = xs + sdp_ext + sdp_c3_gap;            // cradle left rail, outer face
-bx = cr_x0 + rail + clr;                      // PCB left edge
+c3_gap = clr + c3_w_play / 2;                 // gap between each PCB long edge and its rail
+bx = cr_x0 + rail + c3_gap;                   // PCB left edge
 by = wall + clr + c3_usb_overhang;            // PCB USB-C edge
 bz = usb_center_z + c3_usb_h / 2;             // PCB underside (component side, facing the back)
 board_top = bz + c3_t;
@@ -135,15 +136,16 @@ hdr_top = board_top + c3_hdr_h;
 pocket_d = c3_usb_h + 0.2;
 b_end = by + c3_l;                            // PCB antenna edge
 usb_x = bx + c3_w / 2 + c3_usb_dx;
+c3_y1 = b_end + clr + c3_l_play;              // cradle end, inner face of the antenna-end snap
+port_r = max(sdp_barb_d, sdp_tube_od) / 2 + clr;
+label_z = zp + port_r + 1.5;
 
-W = bx + c3_w + clr + rail + margin + corner_keep + wall;
+W = bx + c3_w + c3_gap + rail + margin + corner_keep + wall;
 D = inner_d + 2 * wall;
 Hb = max(hdr_top + dupont_h + wire_bend, wall + sdp_floor_gap + sdp_w + 2);  // base wall top
 H = Hb + wall;                                // closed box height
 
 groove_z = Hb - skirt_h + 1.5;
-key_y = D - wall - 0.5 - 2 - key_head_d / 2 - key_travel;   // keyhole big-hole centre
-key_xs = [W / 2 - key_spacing / 2, W / 2 + key_spacing / 2];
 clip_x = (xs + sdp_ext + cr_x0) / 2;
 clip_y = b_end + 4;
 
@@ -151,7 +153,8 @@ echo(str("Box outside: ", W, " x ", D, " x ", H, " mm"));
 assert(usb_center_z - usb_plug_h / 2 >= 1, "USB plug would hit the mounting wall: raise usb_center_z");
 assert(sdp_boss_h >= sdp_flange_z + 0.4, "sdp_boss_h too small: port flange hits the wall");
 assert(sdp_top + sdp_pin_len + sdp_hdr_clear <= D - wall, "inner_d too small for the SDP810 header clearance");
-assert(key_y - key_head_d / 2 - 2 > b_end + clr + snap_t + 0.5, "keyhole blocks collide with the C3 snap: raise inner_d");
+assert(sdp_port_dx - 2 * port_r >= 2.5, "port holes too close together: sdp_tube_od too large");
+assert(zp - port_r >= wall + 0.4, "port holes cut into the back plate");
 
 // ---------------------------------------------------------------- helpers
 module box(p0, p1) { translate(p0) cube([p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]); }
@@ -188,10 +191,13 @@ module sdp_cuts() {
     for (s = [-1, 1])
         along_y(0.8, wall + sdp_boss_h)
             translate([xs + s * sdp_hole_dx / 2, zh]) circle(d = sdp_pilot_d);
-    // port holes
+    // port holes, big enough for the tube to slide through onto the barb; teardrop with a flat top
     for (x = [x_high, x_low])
         along_y(-1, wall + 2)
-            translate([x, zp]) teardrop2d(sdp_barb_d / 2 + clr);
+            translate([x, zp]) intersection() {
+                teardrop2d(port_r);
+                translate([-port_r - 1, -port_r - 1]) square([2 * port_r + 2, 2 * port_r + 1.5]);
+            }
     // screwdriver access through the top wall
     for (s = [-1, 1])
         along_y(D - wall - 1, wall + 2)
@@ -202,7 +208,7 @@ module sdp_cuts() {
 // They read correctly when you look up at the bottom of the box from the front.
 module labels() {
     for (l = [[x_high, "+ INNE"], [x_low, "− UTE"]])
-        translate([l[0], eps, zp + sdp_barb_d / 2 + clr + 2.0])
+        translate([l[0], eps, label_z])
             rotate([90, 0, 0]) linear_extrude(emboss + eps)
                 text(l[1], size = label_size, font = label_font, halign = "center", valign = "bottom");
 }
@@ -212,12 +218,12 @@ module labels() {
 // the bottom wall hold the header spacer ends at the USB end, one thin snap
 // holds the antenna end.
 module c3_cradle() {
-    y1 = b_end + clr;
+    y1 = c3_y1;
     for (m = [0, 1]) {
-        xl = m == 0 ? bx - clr - rail : bx + c3_w + clr;
+        xl = m == 0 ? bx - c3_gap - rail : bx + c3_w + c3_gap;
         box([xl, wall - eps, 0], [xl + rail, y1, board_top]);               // side rail
-        xe = m == 0 ? bx - clr : bx + c3_w - c3_ledge;
-        box([xe, wall - eps, 0], [xe + c3_ledge + clr, y1, bz]);            // edge ledge
+        xe = m == 0 ? bx - c3_gap : bx + c3_w - c3_ledge;
+        box([xe, wall - eps, 0], [xe + c3_ledge + c3_gap, y1, bz]);            // edge ledge
     }
     // backstop under the components; the antenna end stays open
     box([bx - eps, wall - eps, 0], [bx + c3_w + eps, b_end - c3_antenna_zone, bz - pocket_d]);
@@ -226,8 +232,9 @@ module c3_cradle() {
     translate([bx + c3_w / 2 - snap_w / 2, 0, 0]) {
         box([0, y1, 0], [snap_w, y1 + snap_t, zb]);
         hull() {
-            box([0, y1 - snap_hook, zb], [snap_w, y1 + snap_t, zb + 0.4]);
-            box([0, y1, zb + 0.4 + snap_hook], [snap_w, y1 + snap_t, zb + 0.4 + snap_hook + eps]);
+            // the hook reaches over the play as well, so it still covers snap_hook of the PCB
+            box([0, y1 - snap_hook - c3_l_play, zb], [snap_w, y1 + snap_t, zb + 0.4]);
+            box([0, y1, zb + 0.4 + snap_hook + c3_l_play], [snap_w, y1 + snap_t, zb + 0.4 + snap_hook + c3_l_play + eps]);
         }
     }
     // USB-end hooks over the header spacer ends (pins 1 and 18 stay free)
@@ -258,19 +265,15 @@ module wire_clip() {
     }
 }
 
-module keyhole_blocks() {
-    for (kx = key_xs)
-        box([kx - key_head_d / 2 - 2, key_y - key_head_d / 2 - 2, 0],
-            [kx + key_head_d / 2 + 2, key_y + key_travel + key_head_d / 2 + 2, wall + key_head_h + key_roof]);
-}
-
-// Hang the box: head in through the big hole, then slide the box down.
-module keyhole_cuts() {
-    for (kx = key_xs) {
-        translate([kx, key_y, -1]) cylinder(d = key_head_d, h = wall + key_head_h + 1);
-        hull() for (y = [key_y, key_y + key_travel]) translate([kx, y, -1]) cylinder(d = key_shank_d, h = wall + 2);
-        hull() for (y = [key_y, key_y + key_travel]) translate([kx, y, wall]) cylinder(d = key_head_d, h = key_head_h);
-    }
+// Window in the back plate under the C3 component side: reach BOOT / RESET with a
+// finger or a pin and see the LED. The edge ledges and the rails stay intact.
+module back_window() {
+    x0 = bx + c3_ledge + 0.3;
+    x1 = bx + c3_w - c3_ledge - 0.3;
+    y0 = wall + back_window_keep;
+    y1 = b_end - 1;
+    translate([(x0 + x1) / 2, (y0 + y1) / 2, -1])
+        linear_extrude(bz) rrect2d(x1 - x0, y1 - y0, 1.5);
 }
 
 module vents() {
@@ -285,8 +288,8 @@ module vents() {
         along_y(D - wall - 1, wall + 2) translate([x, (zb + zt) / 2]) rrect2d(vent_w, zt - zb, vent_w / 2 - eps);
 }
 
-function corner_pts() = [for (x = [wall + m3_boss_d / 2 - 1, W - wall - m3_boss_d / 2 + 1])
-                         for (y = [wall + m3_boss_d / 2 - 1, D - wall - m3_boss_d / 2 + 1]) [x, y]];
+function corner_pts() = [for (x = [wall + lid_boss_d / 2 - 1, W - wall - lid_boss_d / 2 + 1])
+                         for (y = [wall + lid_boss_d / 2 - 1, D - wall - lid_boss_d / 2 + 1]) [x, y]];
 
 module base(full = true) {
     difference() {
@@ -295,20 +298,19 @@ module base(full = true) {
             sdp_bosses();
             c3_cradle();
             if (full) wire_clip();
-            keyhole_blocks();
             labels();
-            if (screw_lid) for (p = corner_pts()) translate(p) cylinder(d = m3_boss_d, h = Hb);
+            if (screw_lid) for (p = corner_pts()) translate(p) cylinder(d = lid_boss_d, h = Hb);
         }
         sdp_cuts();
         usb_cut();
-        keyhole_cuts();
+        if (back_window) back_window();
         if (full) vents();
         if (!screw_lid) {
             for (y = [wall, D - wall]) groove(y);
             // pry notch for a fingernail / flat screwdriver
             box([W - wall - 1, D / 2 - 4, Hb - 1.2], [W + 1, D / 2 + 4, Hb + 1]);
         }
-        if (screw_lid) for (p = corner_pts()) translate([p[0], p[1], Hb - m3_depth]) cylinder(d = m3_pilot_d, h = m3_depth + 1);
+        if (screw_lid) for (p = corner_pts()) translate([p[0], p[1], Hb - lid_screw_depth]) cylinder(d = lid_pilot_d, h = lid_screw_depth + 1);
     }
 }
 
@@ -340,8 +342,11 @@ module lid() {
                 box([x + s * (snap_len / 2 + 0.5) - 0.5, y, Hb - skirt_h - 1], [x + s * (snap_len / 2 + 0.5) + 0.5, y + skirt_t + 3, Hb - 0.2]);
         if (screw_lid)
             for (p = corner_pts()) {
-                translate([p[0], p[1], Hb - skirt_h - 1]) cylinder(d = m3_boss_d + 2 * clr, h = skirt_h + 1);
-                translate([p[0], p[1], Hb - 1]) cylinder(d = m3_clear_d, h = wall + 2);
+                translate([p[0], p[1], Hb - skirt_h - 1]) cylinder(d = lid_boss_d + 2 * clr, h = skirt_h + 1);
+                translate([p[0], p[1], Hb - 1]) cylinder(d = lid_clear_d, h = wall + 2);
+                // 90 degree countersink, flush with the lid face
+                if (lid_head_d > 0)
+                    translate([p[0], p[1], Hb + wall - lid_head_d / 2 - 0.2]) cylinder(d1 = 0, d2 = lid_head_d + 0.4, h = lid_head_d / 2 + 0.2 + eps);
             }
     }
 }
@@ -349,8 +354,8 @@ module lid() {
 // ---------------------------------------------------------------- test-fit coupon
 // Bottom strip of the base: C3 cradle, USB-C cutout, SDP810 wall with port holes,
 // bosses and labels.
-coupon_d = b_end + clr + snap_t + 1.5;
-coupon_h = max(zh + sdp_boss_d / 2, hdr_top + 0.15 + 0.8 + usb_hook_reach + 1) + 1.5;
+coupon_d = c3_y1 + snap_t + 1.5;
+coupon_h = max(zh + sdp_boss_d / 2, hdr_top + 0.15 + 0.8 + usb_hook_reach + 1, label_z + label_size) + 1.5;
 module coupon() {
     intersection() {
         base(full = false);

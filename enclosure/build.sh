@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Export STLs and preview PNGs, then check the STLs are manifold.
-# Usage: ./build.sh [extra openscad args, e.g. -D 'lid_fastening="screw"']
+# Usage: ./build.sh [extra openscad args for the enclosure, e.g. -D 'lid_fastening="snap"']
 set -euo pipefail
 cd "$(dirname "$0")"
 SCAD=house-pressure-enclosure.scad
@@ -23,5 +23,13 @@ png base            50,0,200  -D show_lid=false -D show_components=false
 png lid             35,0,30   -D 'part="lid"'
 png coupon          45,0,200  -D 'part="coupon"'
 png back            180,0,0   -D 'part="base"'
+
+echo "== window-feedthrough"
+FT=window-feedthrough.scad
+openscad --backend=manifold -q -o stl/window-feedthrough.stl "$FT"
+openscad -q --imgsize=1400,1050 --viewall --autocenter --colorscheme=Tomorrow \
+  --camera=0,0,0,55,0,25,0 -o png/window-feedthrough.png "$FT"
+openscad -q --imgsize=1400,1050 --viewall --autocenter --colorscheme=Tomorrow \
+  --camera=0,0,0,40,0,30,0 -D 'part="preview"' -o png/window-feedthrough-in-gap.png "$FT"
 
 python3 check_manifold.py stl/*.stl

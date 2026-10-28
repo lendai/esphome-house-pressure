@@ -6,7 +6,7 @@ over the ESPHome Native API.
 
 Config: [`house-pressure.yaml`](house-pressure.yaml)
 
-Enclosure: [`enclosure/`](enclosure/README.md) (OpenSCAD, snap-fit, wall mount)
+Enclosure: [`enclosure/`](enclosure/README.md) (OpenSCAD, screwed lid)
 
 ## Entities
 
