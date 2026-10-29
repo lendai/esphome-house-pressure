@@ -178,6 +178,9 @@ sensor:
     update_interval: 2s
     internal: true
     unit_of_measurement: Pa
+    # Copies inherit this. Empty, so Homey's ESPHome app doesn't map them to
+    # measure_pressure, convert Pa to mbar and round a few Pa down to 0.
+    device_class: ""
     accuracy_decimals: 2
     filters:
       - multiply: 100
@@ -187,7 +190,6 @@ sensor:
     id: pressure_raw
     name: "Pressure indoor-outdoor raw"
     unit_of_measurement: Pa
-    device_class: pressure
     state_class: measurement
     accuracy_decimals: 2
     filters:
@@ -200,7 +202,6 @@ sensor:
     id: pressure_avg
     name: "Pressure indoor-outdoor"
     unit_of_measurement: Pa
-    device_class: pressure
     state_class: measurement
     accuracy_decimals: 1
     filters:
