@@ -14,7 +14,7 @@
 //          docs.waveshare.com/ESP32-C3-Zero, dimension drawing.
 
 /* [Output] */
-part = "assembly";          // [assembly, base, lid, coupon]
+part = "assembly";          // [assembly, base, lid, lid_body, lid_text, lid_preview, coupon]
 lid_fastening = "screw";    // [screw, snap]
 explode = 18;               // assembly view only: lid lift (mm)
 show_lid = true;            // assembly view only
@@ -90,6 +90,13 @@ lid_clear_d = 3.3;          // through-hole in the lid
 lid_head_d = 5.0;           // MEASURE screw head diameter; the lid hole is countersunk to fit (0 = no countersink)
 lid_boss_d = 6.0;           // corner boss diameter
 lid_screw_depth = 10.0;     // pilot hole depth: screw length minus the 2 mm lid
+lid_screws = "diagonal";    // [diagonal, all] screw holes in two opposite corners or all four (bosses stay in all four)
+
+// --- two-colour lid text (parts lid_body + lid_text, printed together as one multi-material object)
+lid_text = "tryckmoj2000";
+lid_text_size = 7.0;        // cap height
+lid_text_font = "Liberation Sans:style=Bold";
+lid_text_depth = 0.6;       // inlay depth into the lid face (3 layers at 0.2 mm)
 
 /* [Layout] */
 margin = 3.0;               // free space between parts and walls
@@ -290,6 +297,8 @@ module vents() {
 
 function corner_pts() = [for (x = [wall + lid_boss_d / 2 - 1, W - wall - lid_boss_d / 2 + 1])
                          for (y = [wall + lid_boss_d / 2 - 1, D - wall - lid_boss_d / 2 + 1]) [x, y]];
+// corners that get a screw: bottom-left and top-right, or all four
+function screw_pts() = lid_screws == "all" ? corner_pts() : [corner_pts()[0], corner_pts()[3]];
 
 module base(full = true) {
     difference() {
@@ -310,7 +319,7 @@ module base(full = true) {
             // pry notch for a fingernail / flat screwdriver
             box([W - wall - 1, D / 2 - 4, Hb - 1.2], [W + 1, D / 2 + 4, Hb + 1]);
         }
-        if (screw_lid) for (p = corner_pts()) translate([p[0], p[1], Hb - lid_screw_depth]) cylinder(d = lid_pilot_d, h = lid_screw_depth + 1);
+        if (screw_lid) for (p = screw_pts()) translate([p[0], p[1], Hb - lid_screw_depth]) cylinder(d = lid_pilot_d, h = lid_screw_depth + 1);
     }
 }
 
@@ -341,8 +350,10 @@ module lid() {
             for (x = snap_xs, s = [-1, 1], y = [o - 2, D - o - skirt_t - 1])
                 box([x + s * (snap_len / 2 + 0.5) - 0.5, y, Hb - skirt_h - 1], [x + s * (snap_len / 2 + 0.5) + 0.5, y + skirt_t + 3, Hb - 0.2]);
         if (screw_lid)
-            for (p = corner_pts()) {
+            for (p = corner_pts())
                 translate([p[0], p[1], Hb - skirt_h - 1]) cylinder(d = lid_boss_d + 2 * clr, h = skirt_h + 1);
+        if (screw_lid)
+            for (p = screw_pts()) {
                 translate([p[0], p[1], Hb - 1]) cylinder(d = lid_clear_d, h = wall + 2);
                 // 90 degree countersink, flush with the lid face
                 if (lid_head_d > 0)
@@ -350,6 +361,13 @@ module lid() {
             }
     }
 }
+
+// Lid name inlay, modelled in place: flush with the outer lid face, reads from outside
+module lid_text_2d() {
+    translate([W / 2, D / 2]) text(lid_text, size = lid_text_size, font = lid_text_font, halign = "center", valign = "center");
+}
+module lid_text_inlay() { translate([0, 0, H - lid_text_depth]) linear_extrude(lid_text_depth) lid_text_2d(); }
+module lid_body() { difference() { lid(); translate([0, 0, eps]) lid_text_inlay(); } }
 
 // ---------------------------------------------------------------- test-fit coupon
 // Bottom strip of the base: C3 cradle, USB-C cutout, SDP810 wall with port holes,
@@ -397,6 +415,9 @@ module c3_model() {
 // ---------------------------------------------------------------- output
 if (part == "base") base();
 else if (part == "lid") translate([0, D, H]) rotate([180, 0, 0]) lid();   // print plate down
+else if (part == "lid_body") translate([0, D, H]) rotate([180, 0, 0]) lid_body();
+else if (part == "lid_text") translate([0, D, H]) rotate([180, 0, 0]) lid_text_inlay();
+else if (part == "lid_preview") { color("white") lid_body(); color("crimson") lid_text_inlay(); }
 else if (part == "coupon") coupon();
 else {
     color("lightgray") base();

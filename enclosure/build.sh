@@ -6,9 +6,9 @@ cd "$(dirname "$0")"
 SCAD=house-pressure-enclosure.scad
 mkdir -p stl png
 
-for p in base lid coupon; do
+for p in base lid lid_body lid_text coupon; do
   echo "== $p"
-  openscad --backend=manifold -q -D "part=\"$p\"" "$@" -o "stl/$p.stl" "$SCAD"
+  openscad --backend=manifold -q -D "part=\"$p\"" "$@" -o "stl/${p/_/-}.stl" "$SCAD"
 done
 
 png() {  # name camera(rotx,roty,rotz) extra-args...
@@ -21,6 +21,7 @@ png assembly-inside 55,0,25   -D show_lid=false
 png assembly-bottom 115,0,-20 -D explode=0
 png base            50,0,200  -D show_lid=false -D show_components=false
 png lid             35,0,30   -D 'part="lid"'
+png lid-text        0,0,0     -D 'part="lid_preview"'
 png coupon          45,0,200  -D 'part="coupon"'
 png back            180,0,0   -D 'part="base"'
 

@@ -11,6 +11,7 @@ mount; stick it up with double-sided foam tape if you want it on a wall. The SDP
 | [`house-pressure-enclosure.scad`](house-pressure-enclosure.scad) | Parametric model. All dimensions are named parameters at the top. Physical part dimensions are tagged `MEASURE`. |
 | `stl/base.stl` | Base / carrier, oriented for printing (back plate down) |
 | `stl/lid.stl` | Lid, oriented for printing (outer face down) |
+| `stl/lid-body.stl` + `stl/lid-text.stl` | Two-colour lid with "tryckmoj2000" inlaid flush in the outer face (see below) |
 | `stl/coupon.stl` | Test-fit coupon: C3 cradle, USB-C cutout, SDP810 wall with port holes, bosses and labels |
 | [`window-feedthrough.scad`](window-feedthrough.scad), `stl/window-feedthrough.stl` | Flat L-shaped part that takes the outdoor air path through the closed window (see below) |
 | `png/*.png` | Preview renders |
@@ -18,7 +19,7 @@ mount; stick it up with double-sided foam tape if you want it on a wall. The SDP
 | [`check_manifold.py`](check_manifold.py) | Checks that every edge is shared by exactly two consistently oriented triangles |
 
 ```bash
-./build.sh                                  # lid screwed on with 4 small wood screws (default)
+./build.sh                                  # lid screwed on with 2 small wood screws in opposite corners (default)
 ```
 
 ```bash
@@ -26,7 +27,7 @@ mount; stick it up with double-sided foam tape if you want it on a wall. The SDP
 ```
 
 You can also open the `.scad` file in OpenSCAD and use the Customizer. Set `part` to `base`, `lid`,
-`coupon` or `assembly`.
+`lid_body`, `lid_text`, `lid_preview`, `coupon` or `assembly`.
 
 ## Layout
 
@@ -59,12 +60,28 @@ Seen from the front, with the box on the wall:
 
 PETG holds threads better but shrinks less. For PETG, set `sdp_pilot_d = 2.2` and `lid_pilot_d = 2.4`.
 
+### Two-colour lid
+
+![Two-colour lid](png/lid-text.png)
+
+`lid-body.stl` is the lid with the text cut 0.6 mm into its outer face, and `lid-text.stl` is the text that fills the cut.
+Both share the same origin, so they line up when imported together:
+
+1. Import both files at once. When the slicer asks, load them as a single object with multiple parts
+   (Bambu Studio / OrcaSlicer / PrusaSlicer all ask this).
+2. Assign the text part to the second filament.
+3. Slice with 0.2 mm layers. The text is the first three layers, on the bed, so it comes out flush and smooth.
+
+This needs a multi-material printer (AMS, MMU, tool changer). On a single extruder, print the plain lid instead,
+or print `lid-body.stl` alone for engraved text you can fill with paint.
+Change the text with `lid_text`, `lid_text_size` and `lid_text_depth`.
+
 ## Hardware
 
 | Qty | Part |
 |---|---|
 | 2 | M2.5 × 14 screws, self-tapping into the plastic (SDP810). This assumes the ear holes run through the full 10.25 mm body. If your ears are thinner, use screws that are 3–4 mm longer than the ear. |
-| 4 | Small countersunk wood screws for the lid, 2.5 × 10–12 mm (head about 5 mm). For other sizes set `lid_pilot_d`, `lid_clear_d`, `lid_head_d` and `lid_screw_depth`. |
+| 2 | Small countersunk wood screws for the lid, 2.5 × 10–12 mm (head about 5 mm), in the bottom-left and top-right corners (`lid_screws = "all"` for all four). For other sizes set `lid_pilot_d`, `lid_clear_d`, `lid_head_d` and `lid_screw_depth`. |
 | 1 | 4-pin 2.0 mm female header with wires (SDP810 side) |
 | 4 | Female Dupont connectors (C3 side) |
 | 2 | 4.7 kΩ resistors (I²C pull-ups, see below) |
@@ -86,7 +103,7 @@ PETG holds threads better but shrinks less. For PETG, set `sdp_pilot_d = 2.2` an
    pin 2 = **GND**, pin 3 = **3V3**, pin 8 = **GPIO4 (SDA)**, pin 9 = **GPIO5 (SCL)**.
    See the wiring table in the [main README](../README.md#wiring).
 7. **Route the wires** through the clip, plug in USB and check that the sensor reports values.
-8. **Close the lid** with the four wood screws in the corners. Stop as soon as the heads are flush, or
+8. **Close the lid** with the two wood screws in the opposite corners. Stop as soon as the heads are flush, or
    they strip the plastic. (Snap lid: press until both long sides click; lever it up at the notch in the right wall to open.)
 9. **Fit the tube.** The port holes are big enough for an 8 mm tube. Push the outdoor tube onto the
    **− UTE** barb and on through the hole until it stops at the port flange inside, so it grips the whole
